@@ -52,7 +52,8 @@ def is_scalar(name, cty, f):
         not (
             'geev' in f.name or
             'tgsna' in f.name or
-            'trsna' in f.name
+            'trsna' in f.name or 
+            'sein' in f.name
         ) and name in [
             'vl',
             'vr',
