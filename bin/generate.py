@@ -31,6 +31,8 @@ def is_scalar(name, cty, f):
             'iter',
             'iu',
             'l',
+            'lca',
+            'lcb',
             'liwork',
             'lrwork',
             'lwork',
@@ -52,7 +54,7 @@ def is_scalar(name, cty, f):
         not (
             'geev' in f.name or
             'tgsna' in f.name or
-            'trsna' in f.name or 
+            'trsna' in f.name or
             'sein' in f.name
         ) and name in [
             'vl',
@@ -71,12 +73,16 @@ def is_scalar(name, cty, f):
     )
 
 def translate_argument(name, cty, f):
+    print(name, cty, f)
     if is_const(name, cty):
         base = translate_type_base(cty, f)
         if is_scalar(name, cty, f):
             return base
         else:
             return '&[{}]'.format(base)
+    elif is_scalar(name, cty, f):
+        base = translate_type_base(cty, f)
+        return base
     elif is_mut(name, cty):
         base = translate_type_base(cty, f)
         if is_scalar(name, cty, f):
@@ -110,6 +116,8 @@ def translate_type_base(cty, f):
         return 'f64'
     elif 'c_float' in cty:
         return 'f32'
+    elif 'c_int' in cty:
+        return 'i32'
 
     assert False, 'cannot translate `{}` in `{}`'.format(cty, f.name)
 
@@ -156,6 +164,8 @@ def translate_return_type(cty):
         return 'f32'
     elif cty == 'c_double':
         return 'f64'
+    elif cty == 'c_int':
+        return 'i32'   
 
     assert False, 'cannot translate `{}`'.format(cty)
 
@@ -178,6 +188,7 @@ def format_header_arguments(f):
 def format_body_arguments(f):
     s = []
     for arg in f.args:
+        # print(arg)
         rty = translate_argument(*arg, f=f)
         s.append(translate_body_argument(arg[0], rty))
     return ', '.join(s)
@@ -198,5 +209,5 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--sys', required=True)
     arguments = parser.parse_args()
-    path = os.path.join(arguments.sys, 'src', 'lib.rs')
+    path = os.path.join(arguments.sys, 'src', 'lapack.rs')
     do(prepare(read_functions(path)))
